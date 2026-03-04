@@ -72,6 +72,7 @@ export function Navigation({
     });
 
     router.push(`/dashboard?${searchQuery.toString()}`);
+    setDashboardSearchUrl('');
   };
 
   return (
