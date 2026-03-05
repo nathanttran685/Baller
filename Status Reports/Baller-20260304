@@ -1,0 +1,44 @@
+# Status Update: Peer Review Week (March 4th, 2026)
+
+## Goals from Last Week:
+- Continue refactoring code and repo (all)
+- Devise improved model prompting (Tanner & Lamont)
+- Implement scam detection and risk factor features (Tanner & Daniel)
+- Implement guest mode restrictions and limited uses (David & Nathan)
+- Further improve testing suite (Lamont & Christy)
+
+## What got done:
+This past week we mainly focused on the peer review milestone, fixing the issues that were brought up for our project.
+
+## Progress and Issues:
+While the week was smooth enough, not a lot of progress was made directly in our codebase as we focused more on the milestone work. Though, we have discussed and made plans for what we will add in the coming week.
+
+As the quarter end and final release is coming closer, we are realizing how our P2 scam detection features are becoming quite a bit more of a stretch, so we may be leaning into unfortunately abandoning or limiting this feature for the final release :/.
+
+### Improvements:
+Seeing the issues brought up from our peer review results, our mindsets on the project have been refreshed with a new perspective. So we will continue refining our product with these issues in mind as we polish up for the final release.
+
+### New Learning: 
+Combining both the issues that we found in another group's project but also the issues that were brought up for ours, we have learned both what we and other groups have tended to overlook. So there is a lot of revisions needed in our current repo that we've learned how to solve.
+
+### Emerging Issues:
+Other than the more immediate fixes that came up in the peer review, we have planned around whats to come and how/what to handle/
+
+## High Level Goals:
+Most of our high level goals have rolled over from weeks prior, with a few minor additions:
+- Engineer better prompting and improve listing information processing
+- Create incentive for account creation through limited use tokens and certain feature restriction
+- Implement scam detection and risk factors (May be scaled down or removed)
+
+## Goals for Next Week: 
+- Prepare final release demo slides (all)
+- Continue refactoring code and repo (all)
+- Devise improved model prompting (Tanner & Lamont)
+- Improve scraper (Tanner)
+- Implement guest mode restrictions and limited uses (David & Nathan)
+- Further improve testing suite (Daniel)
+- Revise documentation (Lamont & David)
+- Implement scam detection and risk factor features (Tanner & Daniel)
+
+## Questions for Product Leader:
+- Between red and green grapes, which are better?
