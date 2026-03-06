@@ -171,6 +171,42 @@ function getListingPrice(value: UnknownRecord): string | undefined {
   return undefined;
 }
 
+function stripMeetupPreference(loc: string | undefined): string | undefined {
+  if (!loc) return loc;
+  return normalizeWhitespace(
+    loc.replace(/\s+(?:Public meetup|Seller'?s? location|Door (?:pickup|dropoff)|Meetup(?: & dropoff)?)$/i, ''),
+  );
+}
+
+function getListingLocationId(value: UnknownRecord): string | undefined {
+  const location = isRecord(value.location) ? value.location : null;
+  const reverseGeocode = location && isRecord(location.reverse_geocode) ? location.reverse_geocode : null;
+  const cityPage = reverseGeocode && isRecord(reverseGeocode.city_page) ? reverseGeocode.city_page : null;
+  if (cityPage && typeof cityPage.id === 'string') {
+    return cityPage.id;
+  }
+  return undefined;
+}
+
+function findMatchingLocationId(
+  candidates: UnknownRecord[],
+  locationName: string | undefined,
+): string | undefined {
+  if (!locationName) return candidates.map(getListingLocationId).find(Boolean);
+  const normalized = locationName.toLowerCase();
+  for (const candidate of candidates) {
+    const location = isRecord(candidate.location) ? candidate.location : null;
+    const reverseGeocode = location && isRecord(location.reverse_geocode) ? location.reverse_geocode : null;
+    const cityPage = reverseGeocode && isRecord(reverseGeocode.city_page) ? reverseGeocode.city_page : null;
+    if (cityPage && typeof cityPage.id === 'string' && typeof cityPage.display_name === 'string') {
+      if (cityPage.display_name.toLowerCase().includes(normalized.split(',')[0])) {
+        return cityPage.id;
+      }
+    }
+  }
+  return candidates.map(getListingLocationId).find(Boolean);
+}
+
 function getListingLocation(value: UnknownRecord): string | undefined {
   const location = isRecord(value.location) ? value.location : null;
   const reverseGeocode = location && isRecord(location.reverse_geocode) ? location.reverse_geocode : null;
@@ -178,15 +214,15 @@ function getListingLocation(value: UnknownRecord): string | undefined {
   const locationText = isRecord(value.location_text) ? value.location_text : null;
 
   if (cityPage && typeof cityPage.display_name === 'string') {
-    return normalizeWhitespace(cityPage.display_name);
+    return stripMeetupPreference(normalizeWhitespace(cityPage.display_name));
   }
 
   if (reverseGeocode && typeof reverseGeocode.display_name === 'string') {
-    return normalizeWhitespace(reverseGeocode.display_name);
+    return stripMeetupPreference(normalizeWhitespace(reverseGeocode.display_name));
   }
 
   if (locationText && typeof locationText.text === 'string') {
-    return normalizeWhitespace(locationText.text);
+    return stripMeetupPreference(normalizeWhitespace(locationText.text));
   }
 
   if (reverseGeocode && typeof reverseGeocode.city === 'string') {
@@ -937,6 +973,8 @@ export function parseMarketplaceListingHtml(input: {
     description: extractDescription(selectedCandidate) ?? domFallback?.listing.description,
     price: getListingPrice(selectedCandidate) ?? domFallback?.listing.price,
     location: getListingLocation(selectedCandidate) ?? domFallback?.listing.location,
+    locationId: getListingLocationId(selectedCandidate)
+      ?? findMatchingLocationId(candidates, getListingLocation(selectedCandidate)),
     images,
     sellerName: extractSellerName(selectedCandidate) ?? domFallback?.listing.sellerName,
     listingDate: extractPostedTime(selectedCandidate) ?? domFallback?.listing.listingDate,
@@ -1001,11 +1039,15 @@ export function parseMarketplaceSearchHtml(html: string): NormalizedSimpleListin
 export function buildMarketplaceSearchUrl(input: {
   title?: string;
   location?: string;
+  locationId?: string;
   condition?: string;
   price?: string;
 }): string {
-  const url = new URL('https://www.facebook.com/marketplace/search');
-  const queryText = normalizeWhitespace([input.title, input.location].filter(Boolean).join(' '));
+  const basePath = input.locationId
+    ? `https://www.facebook.com/marketplace/${input.locationId}/search`
+    : 'https://www.facebook.com/marketplace/search';
+  const url = new URL(basePath);
+  const queryText = normalizeWhitespace(input.title);
 
   url.searchParams.set('query', queryText ?? 'marketplace item');
   url.searchParams.set('exact', 'false');

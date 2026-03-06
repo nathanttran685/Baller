@@ -58,7 +58,7 @@ const DEFAULT_LOCAL_PLAYWRIGHT_USER_DATA_DIR = '.browser-data';
 const DEFAULT_LOCAL_PLAYWRIGHT_HEADLESS = true;
 const LOCAL_PLAYWRIGHT_NAVIGATION_TIMEOUT_MS = 10000;
 const LOCAL_PLAYWRIGHT_READINESS_TIMEOUT_MS = 6000;
-const LOCAL_PLAYWRIGHT_NAVIGATION_GRACE_MS = 1200;
+const LOCAL_PLAYWRIGHT_NAVIGATION_GRACE_MS = 2500;
 const LOCAL_PLAYWRIGHT_BLOCKED_RESOURCES = [
   '**/tr/**',
   '**/logging/**',
@@ -646,7 +646,7 @@ function resolveLocalPlaywrightChannel(): string | null {
     return configuredChannel;
   }
 
-  return 'chrome';
+  return null;
 }
 
 function resolveLocalPlaywrightExecutablePath(): string | null {
@@ -725,6 +725,40 @@ async function fetchHtmlViaLocalPlaywright(input: {
         const page = context.pages()[0] ?? (await context.newPage());
         await setupLocalPlaywrightPage(page);
 
+        // Capture GraphQL/marketplace responses (matching browserless behavior)
+        const itemIdHint = extractMarketplaceItemIdFromUrl(input.url);
+        const capturedPayloads: unknown[] = [];
+        let capturedGraphqlPayloadMatchingItemIdCount = 0;
+
+        page.on('response', (response) => {
+          void (async () => {
+            try {
+              const responseUrl = response.url().toLowerCase();
+              const isMarketplacePayload =
+                responseUrl.includes('/api/graphql') ||
+                responseUrl.includes('__bbox') ||
+                responseUrl.includes('/ajax/') ||
+                responseUrl.includes('marketplace');
+
+              if (!isMarketplacePayload) return;
+
+              const bodyText = await response.text();
+              const parsedPayload = parsePossiblyWrappedJson(bodyText);
+              const payloadMatchesItemIdHint =
+                !itemIdHint ||
+                bodyText.includes(itemIdHint) ||
+                responseUrl.includes(itemIdHint.toLowerCase());
+
+              if (!payloadMatchesItemIdHint || !parsedPayload) return;
+
+              if (itemIdHint) capturedGraphqlPayloadMatchingItemIdCount += 1;
+              capturedPayloads.push(parsedPayload);
+            } catch {
+              // Ignore response payload parse failures.
+            }
+          })();
+        });
+
         const navigationTimeoutMs = Math.max(
           1500,
           Math.min(input.timeoutMs, LOCAL_PLAYWRIGHT_NAVIGATION_TIMEOUT_MS),
@@ -754,19 +788,18 @@ async function fetchHtmlViaLocalPlaywright(input: {
           page.waitForTimeout(Math.min(LOCAL_PLAYWRIGHT_NAVIGATION_GRACE_MS, navigationTimeoutMs)),
         ]);
 
+        // Wait for the SPA to hydrate and render listing data (price, location).
+        // Facebook serves og:meta immediately but rich listing data loads via
+        // GraphQL after React hydrates, typically within 2-3 seconds.
         try {
           await page.waitForFunction(
             () => {
-              const meta = document.querySelector('meta[property="og:title"]');
-
-              if (meta && meta.getAttribute('content')) {
-                return true;
-              }
-
-              if (document.querySelector('h1')) {
-                return true;
-              }
-
+              const bodyText = document.body?.innerText ?? '';
+              // Check for a dollar price visible in the rendered DOM
+              if (/\$\d/.test(bodyText)) return true;
+              // Check for listing data in the page HTML (GraphQL payloads)
+              const html = document.documentElement?.innerHTML ?? '';
+              if (html.includes('listing_price') || html.includes('formatted_amount')) return true;
               return false;
             },
             {
@@ -780,12 +813,52 @@ async function fetchHtmlViaLocalPlaywright(input: {
           // Best-effort readiness check; continue with HTML capture.
         }
 
-        await Promise.race([navigationPromise, page.waitForTimeout(250)]);
+        await Promise.race([navigationPromise, page.waitForTimeout(500)]);
+
+        // Dismiss Facebook login interstitial if present
+        let dismissedPlaywrightLoginInterstitial = false;
+        try {
+          dismissedPlaywrightLoginInterstitial = await dismissFacebookLoginInterstitial(page);
+        } catch {
+          // Best-effort dismissal.
+        }
+
+        if (dismissedPlaywrightLoginInterstitial) {
+          try {
+            await page.waitForLoadState('domcontentloaded', { timeout: 1500 });
+          } catch {
+            // Allow scraping even if post-dismiss domcontentloaded does not fire.
+          }
+
+          try {
+            await page.waitForLoadState('networkidle', { timeout: 1200 });
+          } catch {
+            // Best-effort wait for payload responses after dismissal.
+          }
+        }
 
         const html = await page.content();
+
+        // Inject captured GraphQL payloads as inline script tags (matching browserless behavior)
+        const dedupedCapturedPayloads = Array.from(
+          new Set(capturedPayloads.map((payload) => JSON.stringify(payload))),
+        )
+          .slice(0, 30)
+          .map((payloadString) => JSON.parse(payloadString));
+
+        const htmlWithCapturedPayloads =
+          dedupedCapturedPayloads.length > 0
+            ? `${html}\n${dedupedCapturedPayloads
+                .map(
+                  (payload) =>
+                    `<script type="application/json" data-captured="playwright-graphql">${serializeJsonForInlineScript(payload)}</script>`,
+                )
+                .join('\n')}`
+            : html;
+
         const status = responseStatus ?? 200;
 
-        if (!html || html.trim().length === 0) {
+        if (!htmlWithCapturedPayloads || htmlWithCapturedPayloads.trim().length === 0) {
           if (navigationErrorMessage) {
             const isTimeoutError = looksLikeTimeoutErrorMessage(navigationErrorMessage);
             throw new MarketplaceHtmlFetchError(
@@ -803,17 +876,17 @@ async function fetchHtmlViaLocalPlaywright(input: {
           throw new MarketplaceHtmlFetchError(
             `Marketplace HTML request failed with status ${status}`,
             normalizeUpstreamStatus(status),
-            trimErrorDetails(html),
+            trimErrorDetails(htmlWithCapturedPayloads),
           );
         }
 
         return {
-          html,
+          html: htmlWithCapturedPayloads,
           status,
           usedPlaywrightBootstrap: false,
-          dismissedPlaywrightLoginInterstitial: false,
-          capturedGraphqlPayloadCount: 0,
-          capturedGraphqlPayloadMatchingItemIdCount: 0,
+          dismissedPlaywrightLoginInterstitial,
+          capturedGraphqlPayloadCount: dedupedCapturedPayloads.length,
+          capturedGraphqlPayloadMatchingItemIdCount,
           usedInjectedSessionState: Boolean(input.manualCookieHeader || input.storageState),
           playwrightConnectionMode: 'local',
         };

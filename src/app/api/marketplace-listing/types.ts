@@ -19,6 +19,7 @@ export interface NormalizedMarketplaceListing {
   description?: string;
   price?: string;
   location?: string;
+  locationId?: string;
   images?: string[];
   sellerName?: string;
   listingDate?: string;

@@ -8,7 +8,7 @@ import {
   type ListingCacheEntry,
 } from '../../../lib/server/listingCacheRepository';
 import { scrapeMarketplaceListing } from '../../../lib/server/scraper/scrapeMarketplace';
-import { MarketplaceHtmlError } from '../../../lib/server/scraper/browserManager';
+import { MarketplaceHtmlFetchError } from '../../../lib/server/facebookMarketplaceHtmlFetcher';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
     } catch (caughtError) {
       if (staleCache) {
         const reason =
-          caughtError instanceof MarketplaceHtmlError
+          caughtError instanceof MarketplaceHtmlFetchError
             ? `upstream-html-${caughtError.status}`
             : 'upstream-html-parse-failure';
 
@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
         return getStaleFallbackResponse(staleCache, reason);
       }
 
-      if (caughtError instanceof MarketplaceHtmlError) {
+      if (caughtError instanceof MarketplaceHtmlFetchError) {
         return NextResponse.json(
           { success: false, error: caughtError.message, details: caughtError.details },
           { status: caughtError.status },
