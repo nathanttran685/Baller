@@ -86,20 +86,6 @@ function normalizeMoneyString(value: unknown, fallback: string): string {
 }
 
 /**
- * Ensures model confidence is represented as an integer string between 0 and 100.
- * @deprecated modelAccuracy is now calculated client-side based on images and description length
- */
-function normalizeAccuracyString(value: unknown, fallback: string): string {
-  const numericValue = Number(value);
-
-  if (!Number.isFinite(numericValue)) {
-    return fallback;
-  }
-
-  return Math.min(100, Math.max(0, Math.round(numericValue))).toString();
-}
-
-/**
  * Keeps the top reasons list concise and free of empty entries.
  */
 function normalizeTopReasons(value: unknown): string[] {

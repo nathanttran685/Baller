@@ -53,6 +53,7 @@ export function CompareBar({ selections, onRemove, onClear, limitMessage }: Comp
               key={selection.url}
               className={`flex items-center gap-2 bg-[#FADF0B] ${b5} ${roundedXl} px-3 py-2 ${shadow4}`}
             >
+              {/* eslint-disable @next/next/no-img-element -- external Facebook CDN URLs */}
               {selection.image ? (
                 <img
                   src={selection.image}
@@ -64,6 +65,7 @@ export function CompareBar({ selections, onRemove, onClear, limitMessage }: Comp
                   <span className={`${anton} text-xs`}>?</span>
                 </div>
               )}
+              {/* eslint-enable @next/next/no-img-element */}
               <span className={`${space} text-sm font-semibold line-clamp-1 max-w-[120px]`}>
                 {selection.title}
               </span>

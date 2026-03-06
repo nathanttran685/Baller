@@ -49,6 +49,7 @@ export function useSimilarListings({ query, targetPrice, enabled = true }: UseSi
         const data: SimilarListingsResponse = await response.json();
         
         // Remove similarityScore from listings before setting state
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const cleanedListings = data.listings.map(({ similarityScore, ...listing }) => listing);
         setListings(cleanedListings);
       } catch (err) {

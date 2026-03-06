@@ -48,6 +48,7 @@ export default function ListingCard({
 
       {/* Image with Add to Compare overlay */}
       <div className="relative mb-6 h-44 w-full overflow-hidden rounded-xl border-5 border-black bg-white">
+        {/* eslint-disable-next-line @next/next/no-img-element -- external Facebook CDN URLs */}
         <img
           src={image}
           alt={title}

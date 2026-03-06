@@ -55,6 +55,7 @@ export function ComparisonColumn({ listing, assessment, marketValue, side, prosC
       className={`bg-white ${isWinner ? 'border-5 border-[#00FF00] shadow-[0_0_20px_rgba(0,255,0,0.3)]' : b5} ${roundedXl} ${shadow6} overflow-hidden flex flex-col transition-all duration-700`}
     >
       {/* Listing Image */}
+      {/* eslint-disable @next/next/no-img-element -- external Facebook CDN URLs */}
       <div className={`w-full h-[200px] ${b5} ${roundedXl} overflow-hidden m-[-1px]`}>
         {displayImage ? (
           <img
@@ -69,6 +70,7 @@ export function ComparisonColumn({ listing, assessment, marketValue, side, prosC
           </div>
         )}
       </div>
+      {/* eslint-enable @next/next/no-img-element */}
 
       <div className="p-5 flex flex-col gap-4">
         {/* Title */}
