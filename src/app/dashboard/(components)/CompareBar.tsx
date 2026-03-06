@@ -17,9 +17,10 @@ interface CompareBarProps {
   selections: CompareSelection[];
   onRemove: (selection: CompareSelection) => void;
   onClear: () => void;
+  limitMessage?: boolean;
 }
 
-export function CompareBar({ selections, onRemove, onClear }: CompareBarProps) {
+export function CompareBar({ selections, onRemove, onClear, limitMessage }: CompareBarProps) {
   if (selections.length === 0) return null;
 
   const isReady = selections.length === 2;
@@ -30,7 +31,18 @@ export function CompareBar({ selections, onRemove, onClear }: CompareBarProps) {
     : undefined;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t-5 border-black bg-white px-6 py-4 shadow-[0px_-6px_0px_0px_#000000]">
+    <div className="fixed bottom-0 left-0 right-0 z-40">
+      {/* Limit reminder — floats above the bar */}
+      {limitMessage && (
+        <div className="flex justify-center pb-2">
+          <div className={`${b5} ${roundedXl} bg-[#FF6600] px-5 py-2 ${shadow4} animate-bounce`}>
+            <span className={`${anton} text-sm uppercase text-white`}>
+              You can only compare 2 listings — remove one first!
+            </span>
+          </div>
+        </div>
+      )}
+      <div className="border-t-5 border-black bg-white px-6 py-4 shadow-[0px_-6px_0px_0px_#000000]">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
 
         {/* Left side: selection chips + helper text */}
@@ -40,11 +52,17 @@ export function CompareBar({ selections, onRemove, onClear }: CompareBarProps) {
               key={selection.url}
               className={`flex items-center gap-2 bg-[#FADF0B] ${b5} ${roundedXl} px-3 py-2 ${shadow4}`}
             >
-              <img
-                src={selection.image}
-                alt={selection.title}
-                className="size-8 rounded border-2 border-black object-cover"
-              />
+              {selection.image ? (
+                <img
+                  src={selection.image}
+                  alt={selection.title}
+                  className="size-8 rounded border-2 border-black object-cover"
+                />
+              ) : (
+                <div className="flex size-8 items-center justify-center rounded border-2 border-black bg-gray-200">
+                  <span className={`${anton} text-xs`}>?</span>
+                </div>
+              )}
               <span className={`${space} text-sm font-semibold line-clamp-1 max-w-[120px]`}>
                 {selection.title}
               </span>
@@ -82,6 +100,7 @@ export function CompareBar({ selections, onRemove, onClear }: CompareBarProps) {
           </span>
         )}
 
+      </div>
       </div>
     </div>
   );

@@ -31,7 +31,7 @@ export function SimilarListings({
   compareSelections,
 }: SimilarListingsProps) {
   return (
-    <section className="border-b-4 border-black bg-[#3300FF] p-15">
+    <section className="border-b-4 border-black bg-[#90EE90] p-15 pt-0">
       <div className="mx-auto w-full max-w-6xl">
         <div className="relative rounded-xl border-5 border-black bg-white p-8 shadow-[8px_8px_0px_0px_#000000]">
           <h1 className="mb-4 pb-7 text-center text-6xl text-black font-['Anton',sans-serif] lg:text-7xl">

@@ -45,7 +45,7 @@ export function useMarketplaceListing(
 
     const timeoutId = window.setTimeout(() => {
       didTimeout = true;
-      abortController.abort();
+      abortController.abort('timeout');
     }, LISTING_REQUEST_TIMEOUT_MS);
 
     /**
@@ -98,9 +98,10 @@ export function useMarketplaceListing(
           itemId,
         });
       } catch (caughtError) {
-        if (!isMounted || (abortController.signal.aborted && !didTimeout)) {
-          return;
-        }
+        if (!isMounted) return;
+
+        // Cleanup abort — React strict mode unmount; silently ignore
+        if (abortController.signal.aborted && !didTimeout) return;
 
         console.error('Marketplace listing load failed:', caughtError);
         const message = didTimeout
@@ -133,7 +134,7 @@ export function useMarketplaceListing(
     return () => {
       isMounted = false;
       window.clearTimeout(timeoutId);
-      abortController.abort();
+      abortController.abort('cleanup');
     };
   }, [itemId, normalizedUrl]);
 

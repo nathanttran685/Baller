@@ -44,4 +44,7 @@ yarn-error.log*
 next-env.d.ts
 
 # planning
-.planning/
+/.planning/
+
+.planning/REQUIREMENTS.md
+.planning/STATE.md

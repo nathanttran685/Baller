@@ -34,7 +34,7 @@ export default function ListingCard({
   onToggleCompare,
   isSelectedForCompare,
 }: ListingCardProps) {
-  const [hovered, setHovered] = useState<'view' | 'baller' | 'compare' | null>(null);
+  const [hovered, setHovered] = useState<'baller' | 'compare' | null>(null);
 
   return (
     <div className="flex h-full flex-col items-center rounded-xl border-5 border-black bg-[#FADF0B] p-6 text-center shadow-[6px_6px_0px_0px_#000000] transition-all">
@@ -84,44 +84,11 @@ export default function ListingCard({
         {location}
       </p>
 
-      {/* Button Row */}
+      {/* Baller Actions Row — flex back and forth on hover */}
       <div
         className="mt-auto flex gap-2 w-full pt-6"
         onMouseLeave={() => setHovered(null)}
       >
-
-        {/* VIEW LISTING - external link */}
-        <div
-          className={`min-w-0 transition-all duration-300 ease-in-out ${
-            hovered === null ? 'flex-1' :
-            hovered === 'view' ? 'flex-[3]' : 'flex-[0_0_2.5rem]'
-          }`}
-          onMouseEnter={() => setHovered('view')}
-        >
-          <a
-            href={link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex items-center justify-center h-full bg-[#3300FF] text-white ${b5} py-3 ${shadow4} ${roundedXl} ${pressable} overflow-hidden transition-all duration-300 ${
-              hovered !== null && hovered !== 'view' ? 'px-0' : 'px-4'
-            }`}
-          >
-            <div className={`transition-opacity duration-200 overflow-hidden ${
-              hovered !== null && hovered !== 'view' ? 'opacity-0 w-0' : 'opacity-100'
-            }`}>
-              <span className={`${anton} text-base uppercase text-center block whitespace-nowrap`}>
-                VIEW LISTING
-              </span>
-              {hovered === 'view' && (
-                <div className="flex items-center justify-center gap-1 mt-1">
-                  <ExternalLink className="size-3" />
-                  <span className={`${space} text-xs font-semibold whitespace-nowrap`}>View on Facebook</span>
-                </div>
-              )}
-            </div>
-          </a>
-        </div>
-
         {/* RUN IN BALLER - internal navigation */}
         {ballerUrl && (
           <div
@@ -185,8 +152,20 @@ export default function ListingCard({
             </Link>
           </div>
         )}
-
       </div>
+
+      {/* VIEW ON FACEBOOK - static full-width button at bottom */}
+      <a
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`mt-2 flex w-full items-center justify-center gap-2 bg-[#3300FF] text-white ${b5} py-3 px-4 ${shadow4} ${roundedXl} ${pressable}`}
+      >
+        <span className={`${anton} text-base uppercase whitespace-nowrap`}>
+          VIEW ON FACEBOOK
+        </span>
+        <ExternalLink className="size-4" />
+      </a>
 
     </div>
   );
