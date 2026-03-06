@@ -3,9 +3,11 @@ import { SimilarListings } from '@/src/app/dashboard/(components)/SimilarListing
 
 // Mock next/link to render as a plain anchor tag
 jest.mock('next/link', () => {
-  return ({ href, children, ...props }: { href: string; children: React.ReactNode; [key: string]: unknown }) => (
+  const MockLink = ({ href, children, ...props }: { href: string; children: React.ReactNode; [key: string]: unknown }) => (
     <a href={href} {...props}>{children}</a>
   );
+  MockLink.displayName = 'MockLink';
+  return MockLink;
 });
 
 describe('SimilarListings Component', () => {

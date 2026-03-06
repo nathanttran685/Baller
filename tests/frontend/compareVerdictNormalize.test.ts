@@ -1,5 +1,5 @@
 import { parseVerdictResponse } from '../../src/app/api/compare-verdict/normalize';
-import type { VerdictResult } from '../../src/app/api/compare-verdict/types';
+
 
 describe('parseVerdictResponse', () => {
   it('valid complete JSON parses correctly with all fields populated', () => {

@@ -1,7 +1,8 @@
-import { generateRuleBasedProsConsForSide, type ProConChip } from '../../src/app/compare/utils/prosConsEngine';
+import { generateRuleBasedProsConsForSide } from '../../src/app/compare/utils/prosConsEngine';
 import type { PriceDiff, ConditionDiff } from '../../src/app/compare/utils/diffUtils';
 import type { ConditionAssessmentData } from '../../src/app/dashboard/types';
 import type { MarketplaceListingApiData } from '../../src/app/dashboard/types';
+import type { SimilarListing } from '../../src/app/dashboard/(components)/SimilarListings';
 
 // Helper to build a minimal PriceDiff
 function makePriceDiff(overrides: Partial<PriceDiff> = {}): PriceDiff {
@@ -117,9 +118,9 @@ describe('generateRuleBasedProsConsForSide', () => {
     const priceDiff = makePriceDiff();
     const conditionDiff = makeConditionDiff();
     // Left listing: $400 price, market value from similar listings averages higher
-    const leftListing = makeListing({ price: '$400', similarListings: [{ price: 500 } as any, { price: 600 } as any] });
+    const leftListing = makeListing({ price: '$400', similarListings: [{ price: 500 } as SimilarListing, { price: 600 } as SimilarListing] });
     // Right listing: $800 price, market value from similar listings averages lower
-    const rightListing = makeListing({ price: '$800', similarListings: [{ price: 500 } as any, { price: 600 } as any] });
+    const rightListing = makeListing({ price: '$800', similarListings: [{ price: 500 } as SimilarListing, { price: 600 } as SimilarListing] });
 
     const leftChips = generateRuleBasedProsConsForSide('left', priceDiff, conditionDiff, makeAssessment(), makeAssessment(), leftListing, rightListing);
     const rightChips = generateRuleBasedProsConsForSide('right', priceDiff, conditionDiff, makeAssessment(), makeAssessment(), leftListing, rightListing);
