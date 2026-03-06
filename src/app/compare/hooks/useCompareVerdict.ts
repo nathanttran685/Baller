@@ -150,6 +150,7 @@ export function useCompareVerdict({
       window.clearTimeout(timeoutId);
       abortController.abort();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keying on specific fields, not entire objects
   }, [
     isReady,
     leftListing?.title,

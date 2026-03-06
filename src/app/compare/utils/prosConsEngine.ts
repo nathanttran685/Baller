@@ -42,7 +42,6 @@ export function generateRuleBasedProsConsForSide(
   rightListing: MarketplaceListingApiData,
 ): ProConChip[] {
   const chips: ProConChip[] = [];
-  const otherSide = side === 'left' ? 'right' : 'left';
 
   // 1. Price chips
   if (priceDiff.cheaperSide !== null && priceDiff.cheaperSide !== 'equal' && priceDiff.difference !== null && priceDiff.difference > 0) {

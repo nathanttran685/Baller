@@ -20,6 +20,7 @@ interface CompareBarProps {
   limitMessage?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- onClear reserved for clear-all button (not yet wired)
 export function CompareBar({ selections, onRemove, onClear, limitMessage }: CompareBarProps) {
   if (selections.length === 0) return null;
 
