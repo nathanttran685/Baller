@@ -229,7 +229,7 @@ export default function DashboardClient() {
         <>
           {/* Issue 2: Only show Previous Listings for authenticated users */}
           {isAuthenticated && (
-            <section className={`${sectionBorderB4P15} bg-[#90EE90]`}>
+            <section className="border-t-4 border-black bg-[#90EE90] px-15 pt-15 pb-6">
               <div className={maxW6Full}>
                 <div className={`bg-white ${b5} ${roundedXl} ${previousListingsOpen ? 'p-10' : 'px-10 py-6'} ${shadow8}`}>
                   <button
