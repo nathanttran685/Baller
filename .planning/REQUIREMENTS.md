@@ -21,8 +21,8 @@ Requirements for this branch. Each maps to roadmap phases.
 
 ### Pros/Cons
 
-- [ ] **PROS-01**: Comparison view shows auto-generated pros/cons for each listing covering price & suggested offer, condition, and features/specs
-- [ ] **PROS-02**: Comparison view shows a "better deal" verdict with reasoning
+- [x] **PROS-01**: Comparison view shows auto-generated pros/cons for each listing covering price & suggested offer, condition, and features/specs
+- [x] **PROS-02**: Comparison view shows a "better deal" verdict with reasoning
 
 ### Design
 
@@ -62,8 +62,8 @@ Requirements for this branch. Each maps to roadmap phases.
 | COMP-02 | Phase 2 | Complete |
 | COMP-03 | Phase 2 | Complete |
 | COMP-04 | Phase 2 | Complete |
-| PROS-01 | Phase 3 | Pending |
-| PROS-02 | Phase 3 | Pending |
+| PROS-01 | Phase 3 | Complete |
+| PROS-02 | Phase 3 | Complete |
 | DSGN-01 | Phase 2 | Complete |
 | DSGN-02 | Phase 2 | Complete |
 
@@ -74,4 +74,4 @@ Requirements for this branch. Each maps to roadmap phases.
 
 ---
 *Requirements defined: 2026-03-05*
-*Last updated: 2026-03-05 after roadmap creation*
+*Last updated: 2026-03-06 after 03-02 completion (all v1 requirements complete)*
