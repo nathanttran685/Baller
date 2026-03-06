@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
@@ -12,7 +12,11 @@ import { ColumnSkeleton } from './components/ColumnSkeleton';
 import { DiffSummaryBanner } from './components/DiffSummaryBanner';
 import { PriceComparison } from './components/PriceComparison';
 import { ConditionComparison } from './components/ConditionComparison';
+import { VerdictCard } from './components/VerdictCard';
 import { computeMarketValue } from './utils/listingUtils';
+import { generateRuleBasedProsConsForSide } from './utils/prosConsEngine';
+import { computePriceDiff, computeConditionDiff } from './utils/diffUtils';
+import { useCompareVerdict } from './hooks/useCompareVerdict';
 import {
   anton,
   space,
@@ -60,6 +64,44 @@ export default function CompareClient() {
 
   const leftHasError = leftError || (leftCondError && !leftLoading && leftResolved);
   const rightHasError = rightError || (rightCondError && !rightLoading && rightResolved);
+
+  // Verdict hook -- fires when both listings + assessments are ready
+  const { verdict, isLoading: verdictLoading, error: verdictError } = useCompareVerdict({
+    leftListing: leftListing ?? null,
+    rightListing: rightListing ?? null,
+    leftAssessment,
+    rightAssessment,
+    isReady: Boolean(leftIsReady && rightIsReady),
+  });
+
+  const [winnerSide, setWinnerSide] = useState<'left' | 'right' | null>(null);
+
+  // Compute diffs for rule-based chips
+  const priceDiff = computePriceDiff(leftListing?.price, rightListing?.price);
+  const conditionDiff = computeConditionDiff(
+    leftAssessment?.conditionScore, leftAssessment?.conditionLabel,
+    rightAssessment?.conditionScore, rightAssessment?.conditionLabel,
+  );
+
+  // Rule-based chips (instant when both ready)
+  const leftRuleChips = leftIsReady && rightIsReady
+    ? generateRuleBasedProsConsForSide('left', priceDiff, conditionDiff, leftAssessment!, rightAssessment!, leftListing!, rightListing!)
+    : [];
+  const rightRuleChips = leftIsReady && rightIsReady
+    ? generateRuleBasedProsConsForSide('right', priceDiff, conditionDiff, leftAssessment!, rightAssessment!, leftListing!, rightListing!)
+    : [];
+
+  // Combined chip arrays (rule-based + AI)
+  const leftAllChips = [
+    ...leftRuleChips,
+    ...(verdict?.leftFeaturePros?.map(label => ({ label, type: 'pro' as const, source: 'ai' as const })) ?? []),
+    ...(verdict?.leftFeatureCons?.map(label => ({ label, type: 'con' as const, source: 'ai' as const })) ?? []),
+  ];
+  const rightAllChips = [
+    ...rightRuleChips,
+    ...(verdict?.rightFeaturePros?.map(label => ({ label, type: 'pro' as const, source: 'ai' as const })) ?? []),
+    ...(verdict?.rightFeatureCons?.map(label => ({ label, type: 'con' as const, source: 'ai' as const })) ?? []),
+  ];
 
   const leftMarketValue = computeMarketValue(
     leftListing?.price,
@@ -134,6 +176,9 @@ export default function CompareClient() {
                   assessment={leftAssessment}
                   marketValue={leftMarketValue}
                   side="left"
+                  prosConsChips={leftAllChips}
+                  isAiLoading={verdictLoading}
+                  isWinner={winnerSide === 'left'}
                 />
               ) : (
                 <ColumnSkeleton />
@@ -148,11 +193,24 @@ export default function CompareClient() {
                   assessment={rightAssessment}
                   marketValue={rightMarketValue}
                   side="right"
+                  prosConsChips={rightAllChips}
+                  isAiLoading={verdictLoading}
+                  isWinner={winnerSide === 'right'}
                 />
               ) : (
                 <ColumnSkeleton />
               )}
             </div>
+
+            {/* Verdict Card -- shown when both listings loaded */}
+            {leftIsReady && rightIsReady && (
+              <VerdictCard
+                verdict={verdict}
+                isLoading={verdictLoading}
+                error={verdictError}
+                onReveal={setWinnerSide}
+              />
+            )}
           </div>
         )}
       </div>

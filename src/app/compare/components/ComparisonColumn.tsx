@@ -1,5 +1,7 @@
 import type { MarketplaceListingApiData, ConditionAssessmentData } from '../../dashboard/types';
+import type { ProConChip } from '../utils/prosConsEngine';
 import { getFirstNonVideoImage } from '../../dashboard/utils/imageUtils';
+import { ProsCons } from './ProsCons';
 import {
   anton,
   space,
@@ -14,6 +16,9 @@ export interface ComparisonColumnProps {
   assessment: ConditionAssessmentData | null;
   marketValue: string;
   side: 'left' | 'right';
+  prosConsChips?: ProConChip[];
+  isAiLoading?: boolean;
+  isWinner?: boolean;
 }
 
 function getConditionColor(score: number): string {
@@ -31,7 +36,7 @@ function formatStatValue(value: string | undefined, suffix: '$' | '%'): string {
   return suffix === '$' ? `$${trimmed}` : `${trimmed}%`;
 }
 
-export function ComparisonColumn({ listing, assessment, marketValue, side }: ComparisonColumnProps) {
+export function ComparisonColumn({ listing, assessment, marketValue, side, prosConsChips, isAiLoading, isWinner }: ComparisonColumnProps) {
   const displayImage = getFirstNonVideoImage(listing.images) || '';
   const conditionScore = assessment?.conditionScore;
   const conditionLabel = assessment?.conditionLabel;
@@ -47,7 +52,7 @@ export function ComparisonColumn({ listing, assessment, marketValue, side }: Com
   return (
     <div
       data-testid={`comparison-column-${side}`}
-      className={`bg-white ${b5} ${roundedXl} ${shadow6} overflow-hidden flex flex-col`}
+      className={`bg-white ${isWinner ? 'border-5 border-[#00FF00] shadow-[0_0_20px_rgba(0,255,0,0.3)]' : b5} ${roundedXl} ${shadow6} overflow-hidden flex flex-col transition-all duration-700`}
     >
       {/* Listing Image */}
       <div className={`w-full h-[200px] ${b5} ${roundedXl} overflow-hidden m-[-1px]`}>
@@ -93,6 +98,13 @@ export function ComparisonColumn({ listing, assessment, marketValue, side }: Com
             </div>
           </div>
         )}
+
+        {/* Pros and Cons Chips */}
+        <ProsCons
+          ruleBasedChips={(prosConsChips ?? []).filter(c => c.source === 'rule')}
+          aiChips={(prosConsChips ?? []).filter(c => c.source === 'ai')}
+          isAiLoading={isAiLoading ?? false}
+        />
 
         {/* Stats Row: Suggested Offer | Market Value | Model Accuracy */}
         <div className="grid grid-cols-3 gap-2">
