@@ -69,5 +69,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. One-Click Re-Analyze | 0/2 | Planning complete | - |
-| 2. Comparison View | 0/3 | Planning complete | - |
+| 2. Comparison View | 2/3 | In Progress|  |
 | 3. Pros/Cons and Verdict | 0/0 | Not started | - |

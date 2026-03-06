@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-01 Compare Page
-last_updated: "2026-03-06T05:43:14Z"
-last_activity: 2026-03-06 — Completed 02-01 Compare Page with dual data pipelines
+stopped_at: Completed 02-02 Compare Entry Flows
+last_updated: "2026-03-06T05:44:25Z"
+last_activity: 2026-03-06 — Completed 02-02 Compare Entry Flows (COMPARE button + CompareBar)
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 5
-  completed_plans: 3
-  percent: 60
+  completed_plans: 4
+  percent: 80
 ---
 
 # Project State
@@ -26,28 +26,28 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 ## Current Position
 
 Phase: 2 of 3 (Comparison View)
-Plan: 1 of 3 in current phase (02-01 complete)
+Plan: 2 of 3 in current phase (02-01, 02-02 complete)
 Status: Executing
-Last activity: 2026-03-06 — Completed 02-01 Compare Page with dual data pipelines
+Last activity: 2026-03-06 — Completed 02-02 Compare Entry Flows (COMPARE button + CompareBar)
 
-Progress: [██████░░░░] 60%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 3min
-- Total execution time: 0.15 hours
+- Total plans completed: 4
+- Average duration: 4min
+- Total execution time: 0.27 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-one-click-re-analyze | 2 | 5min | 2.5min |
-| 02-comparison-view | 1 | 4min | 4min |
+| 02-comparison-view | 2 | 9min | 4.5min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3min), 01-02 (2min), 02-01 (4min)
+- Last 5 plans: 01-01 (3min), 01-02 (2min), 02-01 (4min), 02-02 (5min)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -68,6 +68,10 @@ Recent decisions affecting current work:
 - [02-01]: Duplicated parsePriceToNumber/computeMarketValue into compare/utils/listingUtils.ts (DashboardClient doesn't export them; TODO consolidate)
 - [02-01]: Error card uses page reload for retry rather than hook-level retry
 - [02-01]: data-testid attributes for side identification (comparison-column-left/right)
+- [02-02]: CompareSelection interface exported from SimilarListings.tsx for single source of truth
+- [02-02]: COMPARE button uses pink (#FF69B4) to differentiate from blue (view) and orange (baller)
+- [02-02]: CompareBar z-40 sits below sign-in modal z-50 for correct layering
+- [02-02]: Disabled compare button uses span (not Link) to prevent navigation
 
 ### Pending Todos
 
@@ -81,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T05:43:14Z
-Stopped at: Completed 02-01 Compare Page
-Resume file: .planning/phases/02-comparison-view/02-01-SUMMARY.md
+Last session: 2026-03-06T05:44:25Z
+Stopped at: Completed 02-02 Compare Entry Flows
+Resume file: .planning/phases/02-comparison-view/02-02-SUMMARY.md

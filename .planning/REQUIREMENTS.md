@@ -15,8 +15,8 @@ Requirements for this branch. Each maps to roadmap phases.
 ### Comparison View
 
 - [x] **COMP-01**: User can open a side-by-side comparison page showing two listing analyses
-- [ ] **COMP-02**: User can compare the current listing against a similar listing
-- [ ] **COMP-03**: User can compare any two listings flexibly (not limited to current + similar)
+- [x] **COMP-02**: User can compare the current listing against a similar listing
+- [x] **COMP-03**: User can compare any two listings flexibly (not limited to current + similar)
 - [ ] **COMP-04**: Comparison page visually highlights differences between listings (price, condition, features)
 
 ### Pros/Cons
@@ -59,8 +59,8 @@ Requirements for this branch. Each maps to roadmap phases.
 | REANA-01 | Phase 1 | Complete |
 | REANA-02 | Phase 1 | Complete |
 | COMP-01 | Phase 2 | Complete |
-| COMP-02 | Phase 2 | Pending |
-| COMP-03 | Phase 2 | Pending |
+| COMP-02 | Phase 2 | Complete |
+| COMP-03 | Phase 2 | Complete |
 | COMP-04 | Phase 2 | Pending |
 | PROS-01 | Phase 3 | Pending |
 | PROS-02 | Phase 3 | Pending |
