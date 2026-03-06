@@ -156,6 +156,7 @@ export function useConditionAssessment({
       window.clearTimeout(timeoutId);
       abortController.abort();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keying on specific fields, not entire listing object
   }, [
     hasListing,
     isListingLoading,

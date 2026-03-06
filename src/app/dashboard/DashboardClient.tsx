@@ -2,12 +2,15 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { X } from 'lucide-react';
+import { X, Plus, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { AnalysisProgress } from './(components)/AnalysisProgress';
 import { SimilarListings } from './(components)/SimilarListings';
+import { CompareBar } from './(components)/CompareBar';
 import { CurrentListing } from './(components)/CurrentListing';
 import { PricingAnalysis } from './(components)/PriceAnalysis';
 import { Navigation } from '../(components)/Navigation';
 import { parseFacebookMarketplaceListingUrl } from '../../lib/facebookMarketplaceListing';
+import type { CompareSelection } from './(components)/SimilarListings';
 
 import {
   sectionBorderB4P15,
@@ -20,6 +23,7 @@ import {
   shadow8,
   anton,
   space,
+  pressable,
 } from '../consts';
 
 import {
@@ -64,10 +68,26 @@ function computeMarketValue(
   return `$${avg.toLocaleString()}`;
 }
 
+const ANALYSIS_STEPS = ['Fetching listing', 'Analyzing condition', 'Finalizing'];
+
+function getProgressStep(
+  isListingLoading: boolean,
+  isConditionLoading: boolean,
+  hasConditionResolved: boolean,
+): number {
+  if (isListingLoading) return 0;
+  if (isConditionLoading) return 1;
+  if (!hasConditionResolved) return 1; // Still analyzing until condition resolves
+  return 2; // Done / Finalizing
+}
+
 export default function DashboardClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showSignInPopup, setShowSignInPopup] = useState(false);
+  const [compareSelections, setCompareSelections] = useState<CompareSelection[]>([]);
+  const [compareLimitMsg, setCompareLimitMsg] = useState(false);
+  const [previousListingsOpen, setPreviousListingsOpen] = useState(true);
   const listingUrlParam = searchParams.get('listingUrl') ?? '';
 
   const parsedListing = useMemo(
@@ -116,6 +136,34 @@ export default function DashboardClient() {
     setShowSignInPopup(true);
   };
 
+  // Compare selection handlers
+  const handleToggleCompare = (selection: CompareSelection) => {
+    setCompareSelections(prev => {
+      const exists = prev.some(s => s.url === selection.url);
+      if (exists) {
+        setCompareLimitMsg(false);
+        return prev.filter(s => s.url !== selection.url);
+      }
+      if (prev.length >= 2) {
+        setCompareLimitMsg(true);
+        setTimeout(() => setCompareLimitMsg(false), 2500);
+        return prev;
+      }
+      setCompareLimitMsg(false);
+      return [...prev, selection];
+    });
+  };
+
+  const handleRemoveCompare = (selection: CompareSelection) => {
+    setCompareSelections(prev => prev.filter(s => s.url !== selection.url));
+  };
+
+  const handleClearCompare = () => {
+    setCompareSelections([]);
+  };
+
+  const isCurrentListingSelected = compareSelections.some(s => s.url === listingUrlParam);
+
   const isDashboardLoading = isListingLoading || isConditionLoading || (parsedListing && !hasConditionResolved);
   const shouldShowEmptyState = !parsedListing && !isDashboardLoading;
 
@@ -126,7 +174,7 @@ export default function DashboardClient() {
   );
 
   return (
-    <main className="size-full overflow-y-auto bg-[#F5F5F0]">
+    <main className="min-h-screen w-full overflow-y-auto bg-[#F5F5F0]">
       {/* Issue 6: Removed sidebar toggle props, added onUnauthSearchAttempt */}
       <Navigation
         dashboardNav
@@ -173,42 +221,78 @@ export default function DashboardClient() {
       )}
 
       {isDashboardLoading ? (
-        <div className={`p-20 text-center ${anton} uppercase text-3xl animate-pulse`}>
-          Analyzing Listing...
-        </div>
+        <AnalysisProgress
+          currentStep={getProgressStep(isListingLoading, isConditionLoading, hasConditionResolved)}
+          steps={ANALYSIS_STEPS}
+        />
       ) : (
         <>
           {/* Issue 2: Only show Previous Listings for authenticated users */}
           {isAuthenticated && (
-            <section className={`${sectionBorderB4P15} bg-[#90EE90]`}>
+            <section className="border-t-4 border-black bg-[#90EE90] px-15 pt-15 pb-6">
               <div className={maxW6Full}>
-                <div className={`bg-white ${b5} ${roundedXl} p-10 ${shadow8}`}>
-                  <h2 className={`${anton} text-5xl uppercase text-black mb-8`}>
-                    Previous Listings
-                  </h2>
+                <div className={`bg-white ${b5} ${roundedXl} ${previousListingsOpen ? 'p-10' : 'px-10 py-6'} ${shadow8}`}>
+                  <button
+                    type="button"
+                    onClick={() => setPreviousListingsOpen(prev => !prev)}
+                    className="flex w-full items-center justify-between"
+                  >
+                    <h2 className={`${anton} text-5xl uppercase text-black`}>
+                      Previous Listings
+                    </h2>
+                    {previousListingsOpen ? (
+                      <ChevronUp className="size-8" strokeWidth={3} />
+                    ) : (
+                      <ChevronDown className="size-8" strokeWidth={3} />
+                    )}
+                  </button>
 
-                  {searchHistory.length === 0 ? (
-                    <p className={`${space} text-lg font-semibold text-black/60`}>
+                  {previousListingsOpen && searchHistory.length === 0 && (
+                    <p className={`${space} text-lg font-semibold text-black/60 mt-8`}>
                       No listings analyzed yet.
                     </p>
-                  ) : (
+                  )}
+                  {previousListingsOpen && searchHistory.length > 0 && (
                     /* Issue 5: Horizontal scroll for all search history entries */
                     <div className="relative">
                       <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto no-scrollbar">
-                        {searchHistory.map((entry) => (
-                          <button
-                            key={`${entry.url}-${entry.searchedAt}`}
-                            onClick={() => handleSelectPreviousSearch(entry)}
-                            className={`min-w-[280px] max-w-[320px] flex-shrink-0 snap-start rounded-xl ${b5} bg-[#FF69B4] p-6 text-left ${shadow6} transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[8px_8px_0px_0px_#000000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none`}
-                          >
-                            <p className={`${anton} text-xl uppercase text-black line-clamp-1`}>
-                              {entry.listingTitle || "Marketplace Listing"}
-                            </p>
-                            <p className={`mt-1 break-all ${space} text-xs font-bold text-black/50`}>
-                              {entry.url}
-                            </p>
-                          </button>
-                        ))}
+                        {searchHistory.map((entry) => {
+                          const isSelected = compareSelections.some(s => s.url === entry.url);
+                          return (
+                            <div
+                              key={`${entry.url}-${entry.searchedAt}`}
+                              className={`relative min-w-[280px] max-w-[320px] flex-shrink-0 snap-start rounded-xl ${b5} bg-[#FF69B4] p-6 text-left ${shadow6} transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[8px_8px_0px_0px_#000000]`}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => handleSelectPreviousSearch(entry)}
+                                className="w-full text-left"
+                              >
+                                <p className={`${anton} text-xl uppercase text-black line-clamp-1 pr-8`}>
+                                  {entry.listingTitle || "Marketplace Listing"}
+                                </p>
+                                <p className={`mt-1 break-all ${space} text-xs font-bold text-black/50`}>
+                                  {entry.url}
+                                </p>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleCompare({
+                                  url: entry.url,
+                                  title: entry.listingTitle || "Marketplace Listing",
+                                  price: "",
+                                  image: "",
+                                })}
+                                aria-label={isSelected ? "Remove from compare" : "Add to compare"}
+                                className={`absolute top-3 right-3 flex size-7 items-center justify-center rounded-full ${b5} shadow-[2px_2px_0px_0px_#000000] transition-all ${
+                                  isSelected ? 'bg-[#3300FF] text-white' : 'bg-white text-black'
+                                }`}
+                              >
+                                {isSelected ? <Check className="size-3.5" strokeWidth={3} /> : <Plus className="size-3.5" strokeWidth={3} />}
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                       {/* Scroll indicator */}
                       {searchHistory.length > 3 && (
@@ -240,6 +324,24 @@ export default function DashboardClient() {
                   listingDate={activeMarketplaceListing?.listingDate || "Recently"}
                   conditionScore={conditionAssessment?.conditionScore}
                   conditionLabel={conditionAssessment?.conditionLabel}
+                  compareButton={listingUrlParam ? (
+                    <button
+                      type="button"
+                      onClick={() => handleToggleCompare({
+                        url: listingUrlParam,
+                        title: displayTitle,
+                        price: displayPrice,
+                        image: displayImage,
+                      })}
+                      className={`${b5} ${roundedXl} px-4 py-2 ${shadow4} ${pressable} ${anton} text-sm uppercase ${
+                        isCurrentListingSelected
+                          ? 'bg-[#FF69B4] text-white'
+                          : 'bg-[#FF69B4] text-black'
+                      }`}
+                    >
+                      {isCurrentListingSelected ? 'REMOVE FROM COMPARE' : 'ADD TO COMPARE'}
+                    </button>
+                  ) : undefined}
                />
                {/* Issue 4: Market value computed from listing + similar listings average */}
                <PricingAnalysis
@@ -251,16 +353,26 @@ export default function DashboardClient() {
                />
                {/* Issue 3: Render similar listings from both similarListings and simpleListings */}
                {activeMarketplaceListing?.similarListings && activeMarketplaceListing.similarListings.length > 0 && (
-                 <SimilarListings listings={activeMarketplaceListing.similarListings} />
+                 <SimilarListings
+                   listings={activeMarketplaceListing.similarListings}
+                   currentListingUrl={listingUrlParam}
+                   onToggleCompare={handleToggleCompare}
+                   compareSelections={compareSelections}
+                 />
                )}
                {!activeMarketplaceListing?.similarListings?.length && activeMarketplaceListing?.simpleListings && activeMarketplaceListing.simpleListings.length > 0 && (
-                 <SimilarListings listings={activeMarketplaceListing.simpleListings.map(sl => ({
-                   title: sl.title,
-                   location: sl.location,
-                   price: Number(sl.price.replace(/[^\d.]/g, '')) || 0,
-                   image: sl.image,
-                   link: sl.link,
-                 }))} />
+                 <SimilarListings
+                   listings={activeMarketplaceListing.simpleListings.map(sl => ({
+                     title: sl.title,
+                     location: sl.location,
+                     price: Number(sl.price.replace(/[^\d.]/g, '')) || 0,
+                     image: sl.image,
+                     link: sl.link,
+                   }))}
+                   currentListingUrl={listingUrlParam}
+                   onToggleCompare={handleToggleCompare}
+                   compareSelections={compareSelections}
+                 />
                )}
             </div>
           )}
@@ -296,6 +408,16 @@ export default function DashboardClient() {
             </section>
           )}
         </>
+      )}
+
+      {/* Sticky compare bar - renders when 1+ listings selected, z-40 below sign-in modal z-50 */}
+      {compareSelections.length > 0 && (
+        <CompareBar
+          selections={compareSelections}
+          onRemove={handleRemoveCompare}
+          onClear={handleClearCompare}
+          limitMessage={compareLimitMsg}
+        />
       )}
     </main>
   );

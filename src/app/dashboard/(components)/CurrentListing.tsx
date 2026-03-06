@@ -10,6 +10,7 @@ export interface CurrentListingProps {
   location: string;
   conditionScore?: number;
   conditionLabel?: string;
+  compareButton?: React.ReactNode;
 }
 
 export function CurrentListing({
@@ -21,11 +22,13 @@ export function CurrentListing({
   location,
   conditionScore,
   conditionLabel,
+  compareButton,
 }: CurrentListingProps) {
   return (
-    <div className="border-b-4 border-t-4 border-black bg-[#90EE90] p-15">
+    <div className="bg-[#90EE90] px-15 pt-6 pb-15">
       <div className="mx-auto flex w-full max-w-6xl items-stretch justify-between gap-20 rounded-xl border-5 border-black bg-white p-6 shadow-[8px_8px_0px_0px_#000000]">
         <div className="flex-[1] overflow-hidden rounded-xl border-5 border-black">
+          {/* eslint-disable-next-line @next/next/no-img-element -- external Facebook CDN URLs */}
           <img
             src={image}
             alt={title}
@@ -93,6 +96,12 @@ export function CurrentListing({
                 </div>
               )}
             </div>
+
+            {compareButton && (
+              <div className="mt-4">
+                {compareButton}
+              </div>
+            )}
           </div>
 
         </div>
