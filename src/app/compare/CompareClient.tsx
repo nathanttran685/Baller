@@ -9,6 +9,9 @@ import { useMarketplaceListing } from '../dashboard/hooks/useMarketplaceListing'
 import { useConditionAssessment } from '../dashboard/hooks/useConditionAssessment';
 import { ComparisonColumn } from './components/ComparisonColumn';
 import { ColumnSkeleton } from './components/ColumnSkeleton';
+import { DiffSummaryBanner } from './components/DiffSummaryBanner';
+import { PriceComparison } from './components/PriceComparison';
+import { ConditionComparison } from './components/ConditionComparison';
 import { computeMarketValue } from './utils/listingUtils';
 import {
   anton,
@@ -91,35 +94,65 @@ export default function CompareClient() {
             </p>
           </div>
         ) : (
-          /* Two-column grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left Column */}
-            {leftHasError && !leftListing ? (
-              <ErrorCard onRetry={() => window.location.reload()} />
-            ) : leftIsReady ? (
-              <ComparisonColumn
-                listing={leftListing}
-                assessment={leftAssessment}
-                marketValue={leftMarketValue}
-                side="left"
+          <div className="flex flex-col gap-8">
+            {/* Diff Summary Banner — shown when both listings are loaded */}
+            {leftIsReady && rightIsReady && (
+              <DiffSummaryBanner
+                leftListing={leftListing}
+                rightListing={rightListing}
+                leftAssessment={leftAssessment}
+                rightAssessment={rightAssessment}
               />
-            ) : (
-              <ColumnSkeleton />
             )}
 
-            {/* Right Column */}
-            {rightHasError && !rightListing ? (
-              <ErrorCard onRetry={() => window.location.reload()} />
-            ) : rightIsReady ? (
-              <ComparisonColumn
-                listing={rightListing}
-                assessment={rightAssessment}
-                marketValue={rightMarketValue}
-                side="right"
+            {/* Price Comparison row — shown when both listings are loaded */}
+            {leftIsReady && rightIsReady && (
+              <PriceComparison
+                leftPrice={leftListing.price}
+                rightPrice={rightListing.price}
               />
-            ) : (
-              <ColumnSkeleton />
             )}
+
+            {/* Condition Comparison row — shown when both listings are loaded */}
+            {leftIsReady && rightIsReady && (
+              <ConditionComparison
+                leftScore={leftAssessment?.conditionScore}
+                leftLabel={leftAssessment?.conditionLabel}
+                rightScore={rightAssessment?.conditionScore}
+                rightLabel={rightAssessment?.conditionLabel}
+              />
+            )}
+
+            {/* Two-column grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Left Column */}
+              {leftHasError && !leftListing ? (
+                <ErrorCard onRetry={() => window.location.reload()} />
+              ) : leftIsReady ? (
+                <ComparisonColumn
+                  listing={leftListing}
+                  assessment={leftAssessment}
+                  marketValue={leftMarketValue}
+                  side="left"
+                />
+              ) : (
+                <ColumnSkeleton />
+              )}
+
+              {/* Right Column */}
+              {rightHasError && !rightListing ? (
+                <ErrorCard onRetry={() => window.location.reload()} />
+              ) : rightIsReady ? (
+                <ComparisonColumn
+                  listing={rightListing}
+                  assessment={rightAssessment}
+                  marketValue={rightMarketValue}
+                  side="right"
+                />
+              ) : (
+                <ColumnSkeleton />
+              )}
+            </div>
           </div>
         )}
       </div>
