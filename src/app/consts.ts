@@ -500,7 +500,7 @@ export const dashboardStyles = {
   previousListingsTitle: `${anton} text-5xl uppercase text-black`,
   previousListingsEmptyText: `${space} text-lg font-semibold text-black/60 mt-8`,
 
-  previousListingsScrollerWrap: 'relative',
+  previousListingsScrollerWrap: 'relative mt-8',
   previousListingsScroller:
     'flex snap-x snap-mandatory gap-6 overflow-x-auto no-scrollbar',
 
@@ -582,7 +582,7 @@ export const compareBarStyles = {
 } as const;
 
 export const currentListingStyles = {
-  section: 'border-b-4 border-black bg-[#90EE90] px-15 pt-6 pb-15',
+  section: 'border-b-4 border-black bg-[#90EE90] px-15 pt-15 pb-15',
   card:
     `mx-auto flex w-full max-w-6xl items-stretch justify-between gap-20 ${roundedXl} ${b5} bg-white p-6 ${shadow8}`,
   imageWrap: `flex-[1] overflow-hidden ${roundedXl} ${b5}`,
