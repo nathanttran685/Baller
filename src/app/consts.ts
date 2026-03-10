@@ -582,7 +582,7 @@ export const compareBarStyles = {
 } as const;
 
 export const currentListingStyles = {
-  section: 'border-b-4 border-black bg-[#90EE90] px-15 pt-6 pb-15',
+  section: 'border-b-4 border-black bg-[#90EE90] px-15 pt-15 pb-15',
   card:
     `mx-auto flex w-full max-w-6xl items-stretch justify-between gap-20 ${roundedXl} ${b5} bg-white p-6 ${shadow8}`,
   imageWrap: `flex-[1] overflow-hidden ${roundedXl} ${b5}`,
