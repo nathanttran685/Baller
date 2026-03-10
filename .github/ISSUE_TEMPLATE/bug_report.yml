@@ -92,14 +92,14 @@ body:
     id: browser
     attributes:
       label: Browser (if applicable)
-      description: Example: Chrome 121, Safari 17, Firefox 122
+      description: Ex. Chrome 121, Safari 17, Firefox 122
       placeholder: "Chrome 121"
 
   - type: input
     id: device
     attributes:
       label: Device / OS
-      description: Example: Windows 11, macOS 14, iPhone iOS 17
+      description: Ex. Windows 11, macOS 14, iPhone iOS 17
       placeholder: "Windows 11"
 
   - type: textarea
