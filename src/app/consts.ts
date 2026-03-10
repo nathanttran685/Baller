@@ -500,7 +500,7 @@ export const dashboardStyles = {
   previousListingsTitle: `${anton} text-5xl uppercase text-black`,
   previousListingsEmptyText: `${space} text-lg font-semibold text-black/60 mt-8`,
 
-  previousListingsScrollerWrap: 'relative',
+  previousListingsScrollerWrap: 'relative mt-8',
   previousListingsScroller:
     'flex snap-x snap-mandatory gap-6 overflow-x-auto no-scrollbar',
 
