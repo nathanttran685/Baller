@@ -48,7 +48,7 @@ export interface ConditionAssessmentData {
   suggestedOffer?: string;
   negotiationTip?: string;
   scamRiskScore?: number;
-  scamRiskLevel?: string;
+  scamRiskLevel?: 'Low' | 'Medium' | 'High';
   scamRedFlags?: string[];
 }
 

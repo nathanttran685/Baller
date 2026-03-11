@@ -113,11 +113,11 @@ function normalizeScamRiskScore(value: unknown): number {
  * Validates scam risk level against allowed values.
  */
 function normalizeScamRiskLevel(value: unknown): (typeof SCAM_RISK_LEVELS)[number] {
-  if (
-    typeof value === 'string' &&
-    SCAM_RISK_LEVELS.includes(value as (typeof SCAM_RISK_LEVELS)[number])
-  ) {
-    return value as (typeof SCAM_RISK_LEVELS)[number];
+  if (typeof value === 'string') {
+    const normalized = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+    if (SCAM_RISK_LEVELS.includes(normalized as (typeof SCAM_RISK_LEVELS)[number])) {
+      return normalized as (typeof SCAM_RISK_LEVELS)[number];
+    }
   }
   return 'Low';
 }
