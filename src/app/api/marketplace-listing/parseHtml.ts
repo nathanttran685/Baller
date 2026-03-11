@@ -428,6 +428,10 @@ function normalizeConditionValue(rawCondition: string | null | undefined): strin
     return 'used_fair';
   }
 
+  if (normalized === 'used') {
+    return 'used_good';
+  }
+
   return undefined;
 }
 
@@ -920,47 +924,23 @@ export function parseMarketplaceListingHtml(input: {
 
   const requestedItemId = normalizeWhitespace(input.requestedItemId ?? undefined) ?? null;
 
-  // DEBUG: Search all parsed blocks for the requested item ID to find where it lives
-  const fs = require('fs');
-  const debugLines: string[] = [];
-  if (requestedItemId) {
-    const idStr = requestedItemId;
-    for (let i = 0; i < parsedBlocks.length; i++) {
-      const blockStr = JSON.stringify(parsedBlocks[i]);
-      if (blockStr.includes(idStr)) {
-        debugLines.push(`\n=== BLOCK ${i} contains requestedItemId ${idStr} ===`);
-        // Find the object containing the ID
-        walkObjects(parsedBlocks[i], (node) => {
-          const nodeStr = JSON.stringify(node);
-          if (nodeStr.includes(idStr) && nodeStr.length < 5000) {
-            const nodeId = isRecord(node) ? (node.id ?? node.listing_id) : undefined;
-            if (String(nodeId) === idStr) {
-              debugLines.push(`DIRECT ID MATCH - keys: ${Object.keys(node).join(', ')}`);
-              debugLines.push(`node snippet: ${nodeStr.slice(0, 2000)}`);
-            }
-          }
-        });
-      }
-    }
-  }
-  debugLines.push(`\ncandidates: ${candidates.length}, parsedBlocks: ${parsedBlocks.length}`);
-  if (domFallback) {
-    debugLines.push(`domFallback title: ${domFallback.listing.title}, location: ${domFallback.listing.location}`);
-  }
-  fs.writeFileSync('/tmp/baller-debug.log', debugLines.join('\n') + '\n');
+
+const matchingCandidates = requestedItemId
+    ? candidates.filter((candidate) => {
+        const candidateId = getListingId(candidate);
+        const candidateLinkId = extractMarketplaceItemIdFromLink(
+          typeof candidate.marketplace_listing_link === 'string'
+            ? candidate.marketplace_listing_link
+            : undefined,
+        );
+
+        return candidateId === requestedItemId || candidateLinkId === requestedItemId;
+      })
+    : [];
 
   const selectedCandidate = (
-    requestedItemId
-      ? candidates.find((candidate) => {
-          const candidateId = getListingId(candidate);
-          const candidateLinkId = extractMarketplaceItemIdFromLink(
-            typeof candidate.marketplace_listing_link === 'string'
-              ? candidate.marketplace_listing_link
-              : undefined,
-          );
-
-          return candidateId === requestedItemId || candidateLinkId === requestedItemId;
-        })
+    matchingCandidates.length > 0
+      ? matchingCandidates.sort((a, b) => Object.keys(b).length - Object.keys(a).length)[0]
       : undefined
   ) ?? (requestedItemId ? undefined : candidates[0]);
 
@@ -999,12 +979,19 @@ export function parseMarketplaceListingHtml(input: {
 
   const primaryImage = getPrimaryListingImage(selectedCandidate);
   const listingPhotoUris = getAllListingPhotoUris(selectedCandidate);
+  const siblingPhotoUris = matchingCandidates
+    .filter((c) => c !== selectedCandidate)
+    .flatMap((c) => [
+      normalizeWhitespace(getPrimaryListingImage(c)),
+      ...getAllListingPhotoUris(c),
+    ]);
   const fallbackImages = domFallback?.listing.images ?? [];
   const images = Array.from(
     new Set(
       [
         normalizeWhitespace(primaryImage),
         ...listingPhotoUris,
+        ...siblingPhotoUris,
         ...galleryImages,
         ...fallbackImages,
       ].filter((image): image is string => Boolean(image)),
