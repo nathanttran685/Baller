@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed quick task 1: Fix intermittent marketplace listing scrape race where image and description are sometimes missing or wrong; verify the fix
-last_updated: "2026-03-09T02:37:40Z"
-last_activity: 2026-03-09 — Completed quick task 2: Inspected image scrape coverage and GPT-4o image inputs
+stopped_at: "Completed quick task 3: Fix description including see more text"
+last_updated: "2026-03-11T01:19:45.320Z"
+last_activity: "2026-03-09 — Completed quick task 2: Inspected image scrape coverage and GPT-4o image inputs"
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 3
   total_plans: 7
   completed_plans: 7
@@ -88,6 +88,8 @@ Recent decisions affecting current work:
 - [03-02]: TOO_CLOSE_TO_CALL passes null winnerSide so neither column highlights
 - [Quick-001]: Marketplace listing fetch waits for detail signals, retries once on shell HTML, and only caches detail-ready listing payloads
 - [Quick-002]: Scraping stores a full `images[]` array when listing HTML exposes it, but both GPT-4o paths currently send only the first image
+- [Quick-003]: extractLocationFromText uses [a-z]\\s+ lookback before city capture to distinguish city name from condition adjectives (e.g., 'Good Federal Way' -> 'Federal Way')
+- [Quick-003]: DOM fallback location now applies stripMeetupPreference, matching JSON path behavior
 
 ### Roadmap Evolution
 
@@ -109,9 +111,10 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 1 | Fix intermittent marketplace listing scrape race where image and description are sometimes missing or wrong; verify the fix | 2026-03-09 | caa726c | [1-fix-intermittent-marketplace-listing-scr](./quick/1-fix-intermittent-marketplace-listing-scr/) |
 | 2 | Inspect whether marketplace scraping captures all listing images and whether GPT-4o receives all images or only the primary one | 2026-03-09 | 42b39d1 | [2-inspect-whether-marketplace-scraping-cap](./quick/2-inspect-whether-marketplace-scraping-cap/) |
+| 3 | Fix description including see more text — stop description bleed and extract City, ST from DOM fallback text | 2026-03-11 | 5dccc2d | [3-fix-description-including-see-more-text-](./quick/3-fix-description-including-see-more-text-/) |
 
 ## Session Continuity
 
-Last session: 2026-03-09T02:37:40Z
-Stopped at: Completed quick task 2: Inspected image scrape coverage and GPT-4o image inputs
-Resume file: .planning/quick/2-inspect-whether-marketplace-scraping-cap/2-SUMMARY.md
+Last session: 2026-03-11T01:19:45.317Z
+Stopped at: Completed quick task 3: Fix description including see more text
+Resume file: .planning/quick/3-fix-description-including-see-more-text-/3-SUMMARY.md
