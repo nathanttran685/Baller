@@ -621,7 +621,14 @@ function extractPriceFromText(content: string): string | undefined {
 
 export function extractLocationFromText(content: string): string | undefined {
   const locationPatterns = [
+    // "See more Federal Way, WA Seller details" — common Facebook DOM layout
+    /See\s+more\s+([A-Z][A-Za-z\s.'-]+,\s*[A-Z]{2})\b/,
+    // "Condition Used - Good Federal Way, WA Seller details" — city follows condition value text
+    // `[a-z]\s+` requires the char before the city name to be lowercase (condition words end lowercase)
+    /(?:Condition|Description)\s+.*?[a-z]\s+([A-Z][A-Za-z.'-]+(?:\s+[A-Za-z.'-]+)*,\s*[A-Z]{2})\s+(?:Seller|Message|Save|Listed)\b/,
+    // "Listed in Seattle, WA Seller details"
     /(?:Listed|Available)\s+in\s+(.+?)(?:\s+(?:Seller|Condition|Description|Message|Save)\b|$)/i,
+    // "Location: Seattle, WA"
     /(?:Location|Located)\s*[:\-]\s*(.+?)(?:\s+(?:Seller|Condition|Description|Message|Save)\b|$)/i,
   ];
 
@@ -639,9 +646,16 @@ export function extractLocationFromText(content: string): string | undefined {
 
 export function extractDescriptionFromText(content: string): string | undefined {
   const descriptionMatch = content.match(
-    /Description\s+(.+?)(?:\s+(?:Seller details|Condition|Listed|Location|Message seller|Save)\b|$)/i,
+    /Description\s+(.+?)(?:\s+(?:See more|See less|Read more|Show more|Seller details|Condition|Listed|Location|Message seller|Save)\b|$)/i,
   );
-  const description = normalizeWhitespace(descriptionMatch?.[1]);
+  let description = normalizeWhitespace(descriptionMatch?.[1]);
+
+  // Safety net: trim any trailing button text the regex boundary may have missed
+  if (description) {
+    description = normalizeWhitespace(
+      description.replace(/\s+(?:See more|See less|Read more|Show more)\s*$/i, ''),
+    );
+  }
 
   if (description && description.length >= 10) {
     return description;
@@ -781,7 +795,7 @@ function extractListingFromDomFallback(html: string): {
       ? formatCurrencyAmount(parsedMetaPrice)
       : undefined;
   const price = metaPrice ?? extractPriceFromText(plainTextContent);
-  const location = extractLocationFromText(plainTextContent);
+  const location = stripMeetupPreference(extractLocationFromText(plainTextContent));
   const images = extractImageUrisFromHtml(html);
   const sellerName = extractSellerNameFromHtml(contentWithoutScriptBlocks, plainTextContent);
   const postedTime = extractPostedTimeFromText(plainTextContent);

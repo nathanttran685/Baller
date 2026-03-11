@@ -16,8 +16,8 @@ describe('extractDescriptionFromText', () => {
   });
 
   it('stops at "Read more" and returns text before it', () => {
-    const input = 'Description Nice item Read more Location Seattle';
-    expect(extractDescriptionFromText(input)).toBe('Nice item');
+    const input = 'Description Nice listing item Read more Location Seattle';
+    expect(extractDescriptionFromText(input)).toBe('Nice listing item');
   });
 
   it('still stops at original stop words like "Seller details"', () => {
