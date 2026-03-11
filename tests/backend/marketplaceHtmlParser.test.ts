@@ -5,7 +5,7 @@ import {
   looksLikeFacebookAuthWall,
   parseMarketplaceListingHtml,
   parseMarketplaceSearchHtml,
-} from '../src/app/api/marketplace-listing/parseHtml';
+} from '../../src/app/api/marketplace-listing/parseHtml';
 
 describe('Marketplace HTML parser', () => {
   it('parses core listing fields and gallery images from listing HTML', () => {
