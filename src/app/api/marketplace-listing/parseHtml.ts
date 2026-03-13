@@ -171,6 +171,31 @@ function getListingPrice(value: UnknownRecord): string | undefined {
   return undefined;
 }
 
+function sanitizeLocationText(rawLocation: string | undefined): string | undefined {
+  const normalizedLocation = normalizeWhitespace(rawLocation);
+
+  if (!normalizedLocation) {
+    return undefined;
+  }
+
+  const withoutUiTail = normalizeWhitespace(
+    normalizedLocation.replace(
+      /\s+(?:Seller details|Message seller|Send(?: seller a message)?|Save|Log in|Sign up|Directions|Share)\b.*$/i,
+      '',
+    ),
+  );
+
+  if (!withoutUiTail) {
+    return undefined;
+  }
+
+  const locationLikeMatch = withoutUiTail.match(
+    /\b([A-Z][A-Za-z.'-]+(?:\s+[A-Za-z.'-]+)*,\s*(?:[A-Z]{2}|[A-Z][A-Za-z]+(?:\s+[A-Za-z]+)*))\b/,
+  );
+
+  return stripMeetupPreference(locationLikeMatch?.[1] ?? withoutUiTail);
+}
+
 export function stripMeetupPreference(loc: string | undefined): string | undefined {
   if (!loc) return loc;
   return normalizeWhitespace(
@@ -214,15 +239,15 @@ function getListingLocation(value: UnknownRecord): string | undefined {
   const locationText = isRecord(value.location_text) ? value.location_text : null;
 
   if (cityPage && typeof cityPage.display_name === 'string') {
-    return stripMeetupPreference(normalizeWhitespace(cityPage.display_name));
+    return sanitizeLocationText(cityPage.display_name);
   }
 
   if (reverseGeocode && typeof reverseGeocode.display_name === 'string') {
-    return stripMeetupPreference(normalizeWhitespace(reverseGeocode.display_name));
+    return sanitizeLocationText(reverseGeocode.display_name);
   }
 
   if (locationText && typeof locationText.text === 'string') {
-    return stripMeetupPreference(normalizeWhitespace(locationText.text));
+    return sanitizeLocationText(locationText.text);
   }
 
   if (reverseGeocode && typeof reverseGeocode.city === 'string') {
@@ -232,10 +257,10 @@ function getListingLocation(value: UnknownRecord): string | undefined {
     );
 
     if (city && state) {
-      return `${city}, ${state}`;
+      return sanitizeLocationText(`${city}, ${state}`);
     }
 
-    return city;
+    return sanitizeLocationText(city);
   }
 
   return undefined;
@@ -314,21 +339,65 @@ function looksLikeListingCandidate(value: UnknownRecord): boolean {
   );
 }
 
+function getListingCandidateKey(value: UnknownRecord): string {
+  return getListingId(value) ?? getMarketplaceListingLink(value) ?? `unknown:${getListingTitle(value) ?? 'no-title'}`;
+}
+
+function getListingCandidateQualityScore(value: UnknownRecord): number {
+  let score = 0;
+
+  if (getListingTitle(value)) {
+    score += 3;
+  }
+
+  if (getListingPrice(value)) {
+    score += 2;
+  }
+
+  if (getListingLocation(value)) {
+    score += 2;
+  }
+
+  if (extractDescription(value)) {
+    score += 4;
+  }
+
+  if (getPrimaryListingImage(value)) {
+    score += 3;
+  }
+
+  score += Math.min(getAllListingPhotoUris(value).length, 3);
+
+  if (extractSellerName(value)) {
+    score += 1;
+  }
+
+  if (extractPostedTime(value)) {
+    score += 1;
+  }
+
+  if (extractCondition(value, '')) {
+    score += 1;
+  }
+
+  if (getMarketplaceListingLink(value)) {
+    score += 1;
+  }
+
+  return score;
+}
+
 function extractListingCandidates(parsedBlocks: unknown[]): UnknownRecord[] {
-  const candidates: UnknownRecord[] = [];
-  const seenKeys = new Set<string>();
+  const candidates = new Map<string, { candidate: UnknownRecord; score: number }>();
 
   const pushCandidate = (candidate: UnknownRecord): void => {
-    const id = getListingId(candidate) ?? 'no-id';
-    const title = getListingTitle(candidate) ?? 'no-title';
-    const key = `${id}:${title}`;
+    const key = getListingCandidateKey(candidate);
+    const score = getListingCandidateQualityScore(candidate);
+    const existing = candidates.get(key);
 
-    if (seenKeys.has(key)) {
-      return;
+    if (!existing || score > existing.score) {
+      candidates.set(key, { candidate, score });
     }
-
-    seenKeys.add(key);
-    candidates.push(candidate);
   };
 
   for (const block of parsedBlocks) {
@@ -372,7 +441,7 @@ function extractListingCandidates(parsedBlocks: unknown[]): UnknownRecord[] {
     });
   }
 
-  return candidates;
+  return Array.from(candidates.values(), ({ candidate }) => candidate);
 }
 
 function extractGalleryImages(html: string): string[] {
@@ -472,12 +541,30 @@ function extractCondition(value: UnknownRecord, html: string): string | undefine
 }
 
 function extractDescription(value: UnknownRecord): string | undefined {
-  const redactedDescription = isRecord(value.redacted_description)
-    ? value.redacted_description
-    : null;
+  const descriptionCandidates = [
+    value.redacted_description,
+    value.marketplace_listing_description,
+    value.listing_description,
+    value.seller_description,
+    value.description,
+  ];
 
-  if (redactedDescription && typeof redactedDescription.text === 'string') {
-    return normalizeWhitespace(redactedDescription.text);
+  for (const descriptionCandidate of descriptionCandidates) {
+    if (typeof descriptionCandidate === 'string') {
+      const normalizedDescription = normalizeWhitespace(descriptionCandidate);
+
+      if (normalizedDescription) {
+        return normalizedDescription;
+      }
+    }
+
+    if (isRecord(descriptionCandidate) && typeof descriptionCandidate.text === 'string') {
+      const normalizedDescription = normalizeWhitespace(descriptionCandidate.text);
+
+      if (normalizedDescription) {
+        return normalizedDescription;
+      }
+    }
   }
 
   return undefined;
@@ -634,7 +721,7 @@ export function extractLocationFromText(content: string): string | undefined {
 
   for (const locationPattern of locationPatterns) {
     const locationMatch = content.match(locationPattern);
-    const location = normalizeWhitespace(locationMatch?.[1]);
+    const location = sanitizeLocationText(locationMatch?.[1]);
 
     if (location && location.length <= 120) {
       return location;
@@ -795,7 +882,7 @@ function extractListingFromDomFallback(html: string): {
       ? formatCurrencyAmount(parsedMetaPrice)
       : undefined;
   const price = metaPrice ?? extractPriceFromText(plainTextContent);
-  const location = stripMeetupPreference(extractLocationFromText(plainTextContent));
+  const location = extractLocationFromText(plainTextContent);
   const images = extractImageUrisFromHtml(html);
   const sellerName = extractSellerNameFromHtml(contentWithoutScriptBlocks, plainTextContent);
   const postedTime = extractPostedTimeFromText(plainTextContent);
@@ -880,8 +967,10 @@ function extractSimpleListingsFromDomFallback(html: string): NormalizedSimpleLis
         !/^\d+\s+(?:minutes?|hours?|days?)$/i.test(value),
     );
     const location =
-      locationCandidates.find((value) => value.includes(',') || /\bmi\b/i.test(value)) ??
-      locationCandidates[0];
+      sanitizeLocationText(
+        locationCandidates.find((value) => value.includes(',') || /\bmi\b/i.test(value)) ??
+        locationCandidates[0],
+      );
     const imageMatch = listingFragment.match(/<img\b[^>]*\ssrc=["']([^"']+)["']/i);
     const image = imageMatch?.[1] ? normalizeWhitespace(decodeHtmlEntities(imageMatch[1])) : undefined;
 
@@ -920,20 +1009,27 @@ export function parseMarketplaceListingHtml(input: {
 
   const requestedItemId = normalizeWhitespace(input.requestedItemId ?? undefined) ?? null;
 
-  const selectedCandidate = (
-    requestedItemId
-      ? candidates.find((candidate) => {
-          const candidateId = getListingId(candidate);
-          const candidateLinkId = extractMarketplaceItemIdFromLink(
-            typeof candidate.marketplace_listing_link === 'string'
-              ? candidate.marketplace_listing_link
-              : undefined,
-          );
+  const matchingCandidates = requestedItemId
+    ? candidates.filter((candidate) => {
+        const candidateId = getListingId(candidate);
+        const candidateLinkId = extractMarketplaceItemIdFromLink(
+          typeof candidate.marketplace_listing_link === 'string'
+            ? candidate.marketplace_listing_link
+            : undefined,
+        );
 
-          return candidateId === requestedItemId || candidateLinkId === requestedItemId;
-        })
-      : undefined
-  ) ?? (requestedItemId ? undefined : candidates[0]);
+        return candidateId === requestedItemId || candidateLinkId === requestedItemId;
+      })
+    : candidates;
+  const selectedCandidate = matchingCandidates.reduce<UnknownRecord | undefined>((best, candidate) => {
+    if (!best) {
+      return candidate;
+    }
+
+    return getListingCandidateQualityScore(candidate) > getListingCandidateQualityScore(best)
+      ? candidate
+      : best;
+  }, undefined);
 
   if (!selectedCandidate) {
     if (!domFallback) {

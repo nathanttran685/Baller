@@ -214,6 +214,105 @@ describe('Marketplace HTML parser', () => {
     ]);
   });
 
+  it('prefers the richer duplicate candidate for the same item id', () => {
+    const listingHtml = `
+      <html>
+        <body>
+          <script>
+            ${JSON.stringify({
+              data: {
+                marketplace_search: {
+                  feed_units: {
+                    edges: [
+                      {
+                        node: {
+                          listing: {
+                            id: '777888',
+                            marketplace_listing_title: '2019 Toyota Tacoma Off-Road',
+                            marketplace_listing_link: '/marketplace/item/777888/',
+                            listing_price: { formatted_amount: '$31,500' },
+                            location_text: { text: 'Snohomish, WA Send seller a message' },
+                            primary_listing_photo: {
+                              image: { uri: 'https://example.com/shell.jpg' },
+                            },
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+                marketplace_listing_viewer: {
+                  listing: {
+                    id: '777888',
+                    marketplace_listing_title: '2019 Toyota Tacoma Off-Road',
+                    marketplace_listing_link: '/marketplace/item/777888/',
+                    listing_price: { formatted_amount: '$31,500' },
+                    location: {
+                      reverse_geocode: {
+                        city_page: { display_name: 'Snohomish, WA' },
+                      },
+                    },
+                    primary_listing_photo: {
+                      image: { uri: 'https://example.com/live.jpg' },
+                    },
+                    redacted_description: {
+                      text: 'Clean title, one owner, upgraded suspension.',
+                    },
+                  },
+                },
+              },
+            })}
+          </script>
+        </body>
+      </html>
+    `;
+
+    const parsed = parseMarketplaceListingHtml({
+      html: listingHtml,
+      requestedItemId: '777888',
+    });
+
+    expect(parsed.listing.location).to.equal('Snohomish, WA');
+    expect(parsed.listing.description).to.equal('Clean title, one owner, upgraded suspension.');
+    expect(parsed.listing.images).to.deep.equal(['https://example.com/live.jpg']);
+  });
+
+  it('sanitizes trailing marketplace CTA text from candidate location fields', () => {
+    const listingHtml = `
+      <html>
+        <body>
+          <script>
+            ${JSON.stringify({
+              data: {
+                marketplace_listing_viewer: {
+                  listing: {
+                    id: '555444',
+                    marketplace_listing_title: 'Specialized Allez',
+                    marketplace_listing_link: '/marketplace/item/555444/',
+                    listing_price: { formatted_amount: '$900' },
+                    location_text: { text: 'Seattle, WA Send seller a message' },
+                    primary_listing_photo: {
+                      image: { uri: 'https://example.com/bike.jpg' },
+                    },
+                    description: { text: 'Lightweight road bike with carbon fork.' },
+                  },
+                },
+              },
+            })}
+          </script>
+        </body>
+      </html>
+    `;
+
+    const parsed = parseMarketplaceListingHtml({
+      html: listingHtml,
+      requestedItemId: '555444',
+    });
+
+    expect(parsed.listing.location).to.equal('Seattle, WA');
+    expect(parsed.listing.description).to.equal('Lightweight road bike with carbon fork.');
+  });
+
   it('parses and deduplicates simple listings from search HTML', () => {
     const searchHtml = `
       <html>
