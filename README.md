@@ -199,3 +199,21 @@ Then navigate to:
 - Lamont Bui 
 - Nathan Tran
 - Tanner Pham
+
+## My Contributions (Nathan Tran)
+
+### Frontend Development & UI/UX
+
+- Designed and implemented the dashboard interface for displaying price recommendations, comparable listings, and risk indicators
+- Built the logged-in user state UI, ensuring a smooth and intuitive user experience
+- Established cohesive styling across components, focusing on readability, accessibility, and clean data visualization
+
+### System Design & Organization
+
+- Improved repository structure and organization to support a scalable, modular architecture
+- Helped enforce consistent coding patterns and project structure across frontend components
+
+### Modeling & Heuristics
+
+- Contributed to accuracy-focused heuristics for pricing recommendations
+- Assisted in shaping how condition scores and pricing logic translate into user-facing insights
