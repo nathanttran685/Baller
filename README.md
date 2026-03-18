@@ -191,8 +191,6 @@ Then navigate to:
 
 - [Baller Living Document](https://docs.google.com/document/d/1Ne9dMbzxdo1actxRgpeopU2VFmHr2Dr3ZVr-e0mSXKc/edit?usp=sharing)
 
-## Contributors 
-
 ## Contributors
 
 - Christy Nguyen
