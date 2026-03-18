@@ -190,3 +190,14 @@ Then navigate to:
 ## Living Document
 
 - [Baller Living Document](https://docs.google.com/document/d/1Ne9dMbzxdo1actxRgpeopU2VFmHr2Dr3ZVr-e0mSXKc/edit?usp=sharing)
+
+## Contributors 
+
+## Contributors
+
+- Christy Nguyen
+- Daniel Khani
+- David Guzman
+- Lamont Bui 
+- Nathan Tran
+- Tanner Pham
